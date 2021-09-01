@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Wasm Test</title>
+  </head>
+  <body>
+    <script type="module">
+      import init, {hashes} from "./pkg/gca-rust.js";
+      init().then(() => {
+        const result = hashes()
+        alert(JSON.stringify(result))
+      });
+    </script>
+  </body>
+</html>
