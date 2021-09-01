@@ -55,6 +55,7 @@ fn get_bit(filter: &[u8], index: usize) -> bool {
   filter[byte_idx] & (1 << bit_idx) != 0
 }
 
+#[wasm_bindgen]
 pub struct BloomFilter {
   filter: [u8; 256],
 }
@@ -80,6 +81,21 @@ impl BloomFilter {
     }
     return true
   }
+}
+
+#[wasm_bindgen]
+pub fn empty() -> BloomFilter {
+  BloomFilter::new()
+}
+
+#[wasm_bindgen]
+pub fn add(filter: &mut BloomFilter, element: &[u8]) {
+  filter.add(element);
+}
+
+#[wasm_bindgen]
+pub fn has(filter: &BloomFilter, element: &[u8]) -> bool {
+  filter.has(element)
 }
 
 #[wasm_bindgen]

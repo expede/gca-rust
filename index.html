@@ -8,19 +8,21 @@
 
 <body>
   <script type="module">
-    import init, { hashes } from "./pkg/gca_rust.js";
+    import init, { empty, add } from "./pkg/gca_rust.js";
     init().then(() => {
-      const rand = crypto.getRandomValues(new Uint8Array(32))
-      const iters = 1000000
+      // 47 random 256bit arrays, emulating 47 hashes
+      const rands = Array.from(new Array(47)).map(() => crypto.getRandomValues(new Uint8Array(32)))
+      const iters = 100000
       const start = performance.now()
-      let result;
       for (let i = 0; i < iters; i++) {
-        result = hashes(rand)
+        const filter = empty()
+        for (const rand of rands) {
+          add(filter, rand)
+        }
       }
       const end = performance.now()
 
       console.log(`Done in ${end - start}ms or ${((end - start)*1000 / iters).toFixed(4)}μs on average`)
-      console.log(`Last value: ${result}`);
     });
   </script>
 </body>
