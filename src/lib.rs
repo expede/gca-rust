@@ -3,8 +3,7 @@ use core::hash::Hasher;
 use twox_hash::XxHash32;
 
 #[wasm_bindgen]
-pub fn hashes() {
-    const ELEMENT: u32 = 12345;
+pub fn hashes(element: u32) -> u32 {
     const MAX: u32 = 0xFFFF_FFFF;
 
     let mut acc: [u32; 30] = [0; 30];
@@ -13,11 +12,11 @@ pub fn hashes() {
     let mut y: u32;
 
     let mut hasher_a: XxHash32 = XxHash32::with_seed(0);
-    hasher_a.write_u32(ELEMENT);
+    hasher_a.write_u32(element);
     x = hasher_a.finish() as u32;
 
     let mut hasher_b: XxHash32 = XxHash32::with_seed(1);
-    hasher_b.write_u32(ELEMENT);
+    hasher_b.write_u32(element);
     y = hasher_b.finish() as u32;
 
     acc[0] = x;
@@ -27,4 +26,6 @@ pub fn hashes() {
       y = (y + n) % MAX;
       acc[n as usize] = x;
     };
+
+    return acc[29];
 }

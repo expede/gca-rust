@@ -6,10 +6,14 @@
   </head>
   <body>
     <script type="module">
-      import init, {hashes} from "./pkg/gca-rust.js";
+      import init, {hashes} from "./pkg/gca_rust.js";
       init().then(() => {
-        const result = hashes()
-        alert(JSON.stringify(result))
+        const start = performance.now()
+        const result = hashes(123)
+        const end = performance.now()
+
+        console.log(`Done in ${Math.round(end - start / 1000)}μs`)
+        console.log(`Last value: ${result}`);
       });
     </script>
   </body>

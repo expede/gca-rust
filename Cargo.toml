@@ -9,6 +9,7 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
+getrandom = { version = "0.2", features = ["js"] }
 twox-hash = "1.6.1"
 wasm-bindgen = "0.2.76"
 
