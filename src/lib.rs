@@ -3,6 +3,7 @@ use core::iter::Chain;
 use core::iter::once;
 use core::hash::Hasher;
 use twox_hash::XxHash32;
+use sha2::{Digest, Sha256};
 use wasm_bindgen::prelude::*;
 
 struct EnhancedDoubleHash {
@@ -56,6 +57,7 @@ fn get_bit(filter: &[u8], index: usize) -> bool {
 }
 
 #[wasm_bindgen]
+#[derive(Clone, Copy)]
 pub struct BloomFilter {
   filter: [u8; 256],
 }
@@ -67,10 +69,11 @@ impl BloomFilter {
     }
   }
 
-  pub fn add(&mut self, element: &[u8]) {
+  pub fn add(&mut self, element: &[u8]) -> &mut Self {
     for index in hashes_for(element).take(30) {
       set_bit(&mut self.filter, (index % 2048) as usize)
     }
+    self
   }
 
   pub fn has(&self, element: &[u8]) -> bool {
@@ -80,6 +83,14 @@ impl BloomFilter {
       }
     }
     return true
+  }
+
+  pub fn count_ones(&self) -> u32 {
+    let mut count: u32 = 0;
+    for byte in self.filter.iter() {
+      count += byte.count_ones();
+    }
+    count
   }
 }
 
@@ -99,16 +110,48 @@ pub fn has(filter: &BloomFilter, element: &[u8]) -> bool {
 }
 
 #[wasm_bindgen]
-pub fn hashes(element: &[u8]) -> u32 {
-  let mut acc: [u32; 30] = [0; 30];
+pub fn count_ones(filter: &BloomFilter) -> u32 {
+  filter.count_ones()
+}
 
-  let mut i: usize = 0;
-  for hash in hashes_for(element).take(30) {
-    acc[i] = hash;
-    i += 1;
+#[wasm_bindgen]
+pub fn saturate(filter: &BloomFilter) -> BloomFilter {
+  let mut working_filter = filter.clone();
+
+  let mut ones = working_filter.count_ones();
+  let mut remaining_steps_at_least = (1019 - ones) / 30;
+
+  while remaining_steps_at_least>= 1 {
+    for _ in 0..remaining_steps_at_least {
+      saturate_step(&mut working_filter)
+    }
+
+    ones = working_filter.count_ones();
+    remaining_steps_at_least = (1019 - ones) / 30;
   }
 
-  return acc[29];
+  saturate_slow_step(&working_filter)
+}
+
+#[wasm_bindgen]
+pub fn saturate_slow_step(filter: &BloomFilter) -> BloomFilter {
+  let mut filter_stepped = filter.clone();
+  saturate_step(&mut filter_stepped);
+  if filter_stepped.count_ones() >= 1019 {
+    *filter
+  } else {
+    saturate_slow_step(&filter_stepped)
+  }
+}
+
+pub fn saturate_step(filter: &mut BloomFilter) {
+  let sha256: &[u8] = &Sha256::digest(&filter.filter);
+  filter.add(sha256);
+}
+
+#[wasm_bindgen]
+pub fn hashes(element: &[u8]) -> u32 {
+  hashes_for(element).take(30).last().unwrap()
 }
 
 pub fn test_bloom_filter() {
