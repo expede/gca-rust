@@ -1,20 +1,28 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Wasm Test</title>
-  </head>
-  <body>
-    <script type="module">
-      import init, {hashes} from "./pkg/gca_rust.js";
-      init().then(() => {
-        const start = performance.now()
-        const result = hashes(123)
-        const end = performance.now()
 
-        console.log(`Done in ${Math.round(end - start / 1000)}μs`)
-        console.log(`Last value: ${result}`);
-      });
-    </script>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <title>Wasm Test</title>
+</head>
+
+<body>
+  <script type="module">
+    import init, { hashes } from "./pkg/gca_rust.js";
+    init().then(() => {
+      const rand = crypto.getRandomValues(new Uint8Array(32))
+      const iters = 1000000
+      const start = performance.now()
+      let result;
+      for (let i = 0; i < iters; i++) {
+        result = hashes(rand)
+      }
+      const end = performance.now()
+
+      console.log(`Done in ${end - start}ms or ${((end - start)*1000 / iters).toFixed(4)}μs on average`)
+      console.log(`Last value: ${result}`);
+    });
+  </script>
+</body>
+
 </html>
