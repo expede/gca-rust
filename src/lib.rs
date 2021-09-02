@@ -4,8 +4,6 @@ use twox_hash::XxHash32;
 
 #[wasm_bindgen]
 pub fn hashes(element: u32) -> u32 {
-    const MAX: u32 = 0xFFFF_FFFF;
-
     let mut acc: [u32; 30] = [0; 30];
 
     let mut x: u32;
@@ -21,9 +19,9 @@ pub fn hashes(element: u32) -> u32 {
 
     acc[0] = x;
 
-    for n in 1..30 {
-      x = (x + y) % MAX;
-      y = (y + n) % MAX;
+    for n in 1..29 {
+      x = (x + y);
+      y = (y + n);
       acc[n as usize] = x;
     };
 

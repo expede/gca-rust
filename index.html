@@ -7,12 +7,14 @@
   <body>
     <script type="module">
       import init, {hashes} from "./pkg/gca_rust.js";
+      const outerStart = performance.now()
       init().then(() => {
         const start = performance.now()
+        console.log(`Startup in ${Math.round(start - outerStart/ 1000)}μs`)
         const result = hashes(123)
         const end = performance.now()
 
-        console.log(`Done in ${Math.round(end - start / 1000)}μs`)
+        console.log(`Done in ${Math.round(end - start * 1000)}μs`)
         console.log(`Last value: ${result}`);
       });
     </script>
