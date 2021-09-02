@@ -1,10 +1,12 @@
+use js_sys::Uint8Array;
+use wasm_bindgen_futures::JsFuture;
 use core::iter::Once;
 use core::iter::Chain;
 use core::iter::once;
 use core::hash::Hasher;
 use twox_hash::XxHash32;
-use sha2::{Digest, Sha256};
 use wasm_bindgen::prelude::*;
+use web_sys::{SubtleCrypto};
 
 struct EnhancedDoubleHash {
   x: u32,
@@ -114,39 +116,49 @@ pub fn count_ones(filter: &BloomFilter) -> u32 {
   filter.count_ones()
 }
 
+// #[wasm_bindgen]
+// pub async fn saturate(webcrypto: &web_sys::SubtleCrypto, filter: &BloomFilter) -> BloomFilter {
+//   let mut working_filter = filter.clone();
+
+//   let mut ones = working_filter.count_ones();
+//   let mut remaining_steps_at_least = (1019 - ones) / 30;
+
+//   while remaining_steps_at_least>= 1 {
+//     for _ in 0..remaining_steps_at_least {
+//       saturate_step(webcrypto, &mut working_filter).await;
+//     }
+
+//     ones = working_filter.count_ones();
+//     remaining_steps_at_least = (1019 - ones) / 30;
+//   }
+
+//   working_filter
+
+//   // saturate_slow_step(webcrypto, &working_filter).await
+// }
+
+// #[wasm_bindgen]
+// pub async fn saturate_slow_step(webcrypto: &SubtleCrypto, filter: &BloomFilter) -> BloomFilter {
+//   let mut filter_stepped = filter.clone();
+//   saturate_step(webcrypto, &mut filter_stepped).await;
+//   if filter_stepped.count_ones() >= 1019 {
+//     *filter
+//   } else {
+//     saturate_slow_step(webcrypto, &filter_stepped).await
+//   }
+// }
+
 #[wasm_bindgen]
-pub fn saturate(filter: &BloomFilter) -> BloomFilter {
-  let mut working_filter = filter.clone();
-
-  let mut ones = working_filter.count_ones();
-  let mut remaining_steps_at_least = (1019 - ones) / 30;
-
-  while remaining_steps_at_least>= 1 {
-    for _ in 0..remaining_steps_at_least {
-      saturate_step(&mut working_filter)
-    }
-
-    ones = working_filter.count_ones();
-    remaining_steps_at_least = (1019 - ones) / 30;
-  }
-
-  saturate_slow_step(&working_filter)
-}
-
-#[wasm_bindgen]
-pub fn saturate_slow_step(filter: &BloomFilter) -> BloomFilter {
-  let mut filter_stepped = filter.clone();
-  saturate_step(&mut filter_stepped);
-  if filter_stepped.count_ones() >= 1019 {
-    *filter
-  } else {
-    saturate_slow_step(&filter_stepped)
-  }
-}
-
-pub fn saturate_step(filter: &mut BloomFilter) {
-  let sha256: &[u8] = &Sha256::digest(&filter.filter);
-  filter.add(sha256);
+pub async fn saturate_step(webcrypto: &SubtleCrypto, filter: &mut BloomFilter) {
+  let mut sha256 = [0 as u8, 256];
+  Uint8Array::new(&JsFuture::from(
+    webcrypto
+      .digest_with_str_and_u8_array("sha-256", &mut filter.filter) // Why do I provide a mutable filter here? wut? I guess because *in theory* that's what the JS api *could* do?
+      .expect("should have access to the webcrypto api")
+    ).await
+    .expect("should not throw the promise")
+  ).copy_to(&mut sha256);
+  filter.add(&sha256);
 }
 
 #[wasm_bindgen]
@@ -162,4 +174,9 @@ pub fn test_bloom_filter() {
   assert_eq!(filter.has(&[0;4]), true, "Filter has element added to it");
   assert_eq!(filter.has(&[1;4]), true, "Filter has element added to it");
   assert_eq!(filter.has(&[2;4]), false, "Filter doesn't have non-added element");
+}
+
+#[wasm_bindgen(start)]
+pub fn main() {
+  console_error_panic_hook::set_once();
 }
