@@ -14,5 +14,5 @@ jobs:
         uses: fission-suite/publish-action@v1
         with:
           machine_key: ${{ secrets.FISSION_KEY }}
-          build_dir: ./build
+          build_dir: .
           app_url: enormous-elderly-magenta-puppy.fission.app
