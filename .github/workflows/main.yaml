@@ -1,0 +1,18 @@
+name: Deploy to Fission (debugging)
+
+on:
+  push:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish to Fission
+        uses: fission-suite/publish-action@v1
+        with:
+          machine_key: ${{ secrets.FISSION_PRODUCTION_KEY }}
+          build_dir: ./build
+          app_url: enormous-elderly-magenta-puppy.fission.app
