@@ -14,3 +14,4 @@ jobs:
         uses: fission-suite/publish-action@v1
         with:
           machine_key: ${{ secrets.FISSION_KEY }}
+          remote: https://runfission.net
