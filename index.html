@@ -1,32 +1,31 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-  <meta charset="utf-8">
-  <title>Wasm Test</title>
-</head>
+  <head>
+    <meta charset="utf-8">
+    <title>Wasm Test</title>
+  </head>
 
-<body>
-  <script type="module">
-    import init, { empty, add, saturate, count_ones } from "./pkg/gca_rust.js";
-    init().then(() => {
-      // 47 random 256bit arrays, emulating 47 hashes
-      // const rands = Array.from(new Array(47)).map(() => crypto.getRandomValues(new Uint8Array(32)))
-      const rand = crypto.getRandomValues(new Uint8Array(32))
-      const iters = 10000
-      let sumCountOnes = 0
-      const start = performance.now()
-      for (let i = 0; i < iters; i++) {
-        const filter = empty()
-        add(filter, rand)
-        sumCountOnes += count_ones(saturate(filter))
-      }
-      const end = performance.now()
+  <body>
+    <script type="module">
+      import init, { empty, add, saturate, count_ones } from "./pkg/gca_rust.js";
+      init().then(() => {
+        // 47 random 256bit arrays, emulating 47 hashes
+        // const rands = Array.from(new Array(47)).map(() => crypto.getRandomValues(new Uint8Array(32)))
+        const rand = crypto.getRandomValues(new Uint8Array(32))
+        const iters = 10000
+        let sumCountOnes = 0
+        const start = performance.now()
+        for (let i = 0; i < iters; i++) {
+          const filter = empty()
+          add(filter, rand)
+          sumCountOnes += count_ones(saturate(filter))
+        }
+        const end = performance.now()
 
-      console.log(`Done in ${end - start}ms or ${((end - start)*1000 / iters).toFixed(4)}μs on average`)
-      console.log(`Avg popcount ${(sumCountOnes / iters).toFixed(4)}`)
-    });
-  </script>
-</body>
-
+        console.log(`Done in ${end - start}ms or ${((end - start)*1000 / iters).toFixed(4)}μs on average`)
+        console.log(`Avg popcount ${(sumCountOnes / iters).toFixed(4)}`)
+      });
+    </script>
+  </body>
 </html>
